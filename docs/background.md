@@ -55,13 +55,30 @@ The same tiling underpins the public **sky-coverage** feed
 observation counts, and first/last-observed timestamps — a fast way to see where and how deeply the
 sky has been imaged before you pull individual frames.
 
+## The stacked FITS file
+
+A downloaded stack (`download_frame`) is a **multi-extension FITS** file, not a plain 2-D image:
+
+| HDU | Name | Contents |
+|-----|------|----------|
+| 0 | `PRIMARY` | header only — **no image data** (`hdul[0].data` is `None`) |
+| 1–3 | `RED`, `GREEN`, `BLUE` | the three colour planes, each a 2-D `int16`→`uint16` image |
+| 4 | `STAR-TAB` | the source table (see below) |
+
+So open by extension name — e.g. `hdul["GREEN"].data` for the green layer — **not** `hdul[0].data`.
+
 ## Star tables
 
-Each stack has a star table (from `star_data`) produced during processing: SEP-detected sources with
-pixel positions and fluxes, cross-matched against **Gaia**. Detections that matched a Gaia source
-carry the catalogue association (and, where computed, a synthetic magnitude); unmatched detections
-are typically cosmic rays, hot pixels, extended-object substructure, or genuine transients. The
+Every stack carries a **`STAR-TAB`** binary-table extension inside the FITS file: SEP-detected
+sources with pixel positions (`x`, `y`), shape and flux columns, sky coordinates (`ra`, `dec`), and
+the **Gaia cross-match**: `gaia_id` (0 when unmatched), `gaia_gmag` (NaN when unmatched), and
+`match_dist_arcsec`. A detection is Gaia-matched when `gaia_id != 0`; unmatched detections are
+typically cosmic rays, hot pixels, extended-object substructure, or genuine transients. The
 {doc}`worked example <use_case>` uses exactly this matched/unmatched split.
+
+{meth}`~crowdsky_client.Client.star_data` returns a lighter **standalone** star file as JSON — the
+SEP detections only (`x`, `y`, `flux`, `a`, `b`, `flag`, `peak`, `ra`, `dec`). **The Gaia columns
+are not in that JSON**; for the cross-match, read the `STAR-TAB` extension of the downloaded FITS.
 
 ```{note}
 Star tables are *detected sources*, not forced photometry. To measure a transient at a known

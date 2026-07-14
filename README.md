@@ -39,11 +39,13 @@ frames = c.frames_for_target(159.6998, 53.5095, radius_deg=0.75, filter_name="IR
 # Frames in a single HEALPix tile with server-side filters:
 frames = c.frames_by_healpix(49152, start="2026-07-01T00:00:00Z", min_exptime=120)
 
-# Download a stacked FITS by its unique id (bytes, or straight to disk):
+# Download a stacked FITS by its unique id (bytes, or straight to disk).
+# It's a multi-extension FITS: colour planes in the RED/GREEN/BLUE image HDUs
+# (not the primary HDU) plus a STAR-TAB extension with the Gaia cross-match.
 fits_bytes = c.download_frame(frames[0]["id"])
 c.download_frame_to(frames[0]["id"], "frame.fits")
 
-# A frame's SEP + Gaia star table:
+# A frame's standalone SEP star file as JSON (Gaia cross-match is in the FITS STAR-TAB):
 stars = c.star_data(frames[0]["id"])
 
 # Public sky-coverage feed (no key needed) as an astropy Table:

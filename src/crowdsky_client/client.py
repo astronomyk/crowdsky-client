@@ -16,8 +16,8 @@ Endpoints wrapped (see CrowdSky ``docs/api-reference.md``):
   coordinate-driven convenience :meth:`Client.frames_for_target`.
 - ``download_frame.php?id=…`` — a stacked FITS by its unique numeric id
   (:meth:`Client.download_frame` / :meth:`Client.download_frame_to`).
-- ``frame_stars.php?id=…`` — a frame's SEP + Gaia star table
-  (:meth:`Client.star_data`).
+- ``frame_stars.php?id=…`` — a frame's standalone SEP star file as JSON
+  (:meth:`Client.star_data`; the Gaia cross-match is in the FITS ``STAR-TAB`` instead).
 - ``sky_coverage.php`` — the public Norder-7 coverage feed as an astropy Table
   (:meth:`Client.sky_coverage`).
 
@@ -186,11 +186,16 @@ class Client:
         return p
 
     def star_data(self, frame_id: int | str) -> dict[str, Any]:
-        """Return a frame's star table (SEP detections + Gaia cross-match) as JSON.
+        """Return a frame's standalone star file as JSON.
 
-        Note: these are *detected sources*, not forced photometry — a pipeline
-        measuring a transient at a known position still needs the pixels
-        (:meth:`download_frame`).
+        Shape: ``{"width", "height", "stars": [...]}``, where each star carries the
+        SEP-detection fields (``x``, ``y``, ``flux``, ``a``, ``b``, ``flag``,
+        ``peak``, ``ra``, ``dec``).
+
+        Note: the **Gaia cross-match** (``gaia_id``, ``gaia_gmag``,
+        ``match_dist_arcsec``) is *not* in this JSON — it lives in the ``STAR-TAB``
+        binary-table extension of the stacked FITS (:meth:`download_frame`). And
+        these are *detected sources*, not forced photometry.
         """
         return self._get("frame_stars.php", bearer=True, id=frame_id).json()
 

@@ -21,3 +21,8 @@ docs/_build/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local secrets / scratch
+throw_away_api_key.txt
+*api_key*.txt
+.ipynb_checkpoints/

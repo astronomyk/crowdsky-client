@@ -57,14 +57,21 @@ Wrapped by {meth}`~crowdsky_client.Client.download_frame` and
 
 ## `GET /api/frame_stars.php`
 
-Returns one frame's star table (SEP detections + Gaia cross-match) as JSON, proxied from storage.
-Wrapped by {meth}`~crowdsky_client.Client.star_data`.
+Returns one frame's standalone star file as JSON, proxied from storage. Wrapped by
+{meth}`~crowdsky_client.Client.star_data`.
 
 | Param | Required | Description |
 |-------|----------|-------------|
 | `id` | yes | A single `stacked_frames.id`. |
 
-**Response** — `200` `application/json` star table; `404` if the frame has no star table.
+**Response** — `200` `application/json`: `{"width", "height", "stars": [...]}`, where each star has
+the **SEP detection** fields (`x`, `y`, `flux`, `a`, `b`, `flag`, `peak`, `ra`, `dec`). `404` if the
+frame has no star file.
+
+```{note}
+The Gaia cross-match (`gaia_id`, `gaia_gmag`, `match_dist_arcsec`) is **not** in this JSON — it lives
+in the `STAR-TAB` extension of the stacked FITS (`download_frame`). See {doc}`background`.
+```
 
 ## `GET /api/sky_coverage.php`
 
